@@ -9,28 +9,27 @@ app = Flask(__name__)
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
 PROMPT = """
-You are an expert problem solver.
-
-Look at the image and identify ONLY the problems.
+Solve all problems in the image.
 
 CRITICAL RULES:
-- DO NOT read or say any symbols (no "tilde", "plus", "minus", etc)
-- DO NOT describe the image
-- DO NOT explain anything
-- DO NOT read the problem out loud
+- Do NOT read the problem
+- Do NOT say symbols
+- Do NOT explain anything
+- Only give final answers
 
-ONLY solve and give final answers.
+FORMAT RULE (VERY IMPORTANT):
+- EVERY answer MUST start with its number
+- ALWAYS include the number for EACH answer
+- NEVER skip numbering
 
-For each problem:
-- Compute the answer
-- Output ONLY the answer
+Example:
+1: 212
+2: 22792
+3: 13823
 
-Format:
-1: answer
-2: answer
-3: answer
+If there are 5 problems, you MUST output 5 numbered answers.
 
-Keep responses extremely short for speech.
+Keep it short for speech.
 """
 
 def detect_media_type(image_bytes: bytes) -> str:
