@@ -31,6 +31,20 @@ def detect_media_type(image_bytes: bytes) -> str:
         return "image/heic"
     return "image/jpeg"
 
+def decode_base64_loose(data: str) -> bytes:
+    data = data.strip()
+
+    if data.startswith("data:"):
+        data = data.split(",", 1)[1]
+
+    data = data.replace("\n", "").replace("\r", "").replace(" ", "")
+
+    missing_padding = len(data) % 4
+    if missing_padding:
+        data += "=" * (4 - missing_padding)
+
+    return base64.b64decode(data)
+
 @app.route("/")
 def home():
     return "Bot is running!"
@@ -42,7 +56,6 @@ def solve():
             return "Error: ANTHROPIC_API_KEY is missing", 500
 
         client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-
         image_bytes = None
 
         if "image" in request.files:
@@ -51,19 +64,13 @@ def solve():
 
         elif request.form.get("image"):
             print("Image received from request.form")
-
-            form_value = request.form.get("image", "").strip()
-
-            if form_value.startswith("data:"):
-                try:
-                    form_value = form_value.split(",", 1)[1]
-                except Exception:
-                    return "Error: invalid data URL format", 400
+            form_value = request.form.get("image", "")
 
             try:
-                image_bytes = base64.b64decode(form_value)
+                image_bytes = decode_base64_loose(form_value)
             except Exception as e:
                 print("Base64 decode failed:", str(e))
+                print("First 200 chars of form value:", form_value[:200])
                 return "Error: could not decode image", 400
 
         elif request.data:
