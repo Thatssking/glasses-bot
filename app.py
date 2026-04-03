@@ -9,32 +9,28 @@ app = Flask(__name__)
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
 PROMPT = """
-You are a highly capable problem-solving AI (like ChatGPT).
+You are an expert problem solver.
 
-Look at the image and identify ALL problems (math, discrete structures, word problems, diagrams, etc).
+Look at the image and identify ONLY the problems.
 
-Rules:
-- Focus ONLY on actual problems/questions
-- Ignore UI elements, backgrounds, or irrelevant text
-- Do NOT describe the image
+CRITICAL RULES:
+- DO NOT read or say any symbols (no "tilde", "plus", "minus", etc)
+- DO NOT describe the image
+- DO NOT explain anything
+- DO NOT read the problem out loud
 
-For EACH problem:
-1. Understand it
-2. Solve it correctly
-3. Give a VERY SHORT answer
+ONLY solve and give final answers.
 
-Output style:
-- If it's simple math → just give the answer
-- If it's multiple choice → say the correct letter + answer
-- If it's conceptual (discrete math, logic, sets, graphs, etc) → give a SHORT final answer (no long explanation)
+For each problem:
+- Compute the answer
+- Output ONLY the answer
 
 Format:
 1: answer
 2: answer
 3: answer
 
-Keep everything concise and natural for speech.
-Do NOT explain unless absolutely necessary.
+Keep responses extremely short for speech.
 """
 
 def detect_media_type(image_bytes: bytes) -> str:
