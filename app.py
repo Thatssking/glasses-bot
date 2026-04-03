@@ -51,6 +51,7 @@ def solve():
 
         elif request.form.get("image"):
             print("Image received from request.form")
+
             form_value = request.form.get("image", "").strip()
 
             if form_value.startswith("data:"):
@@ -61,8 +62,9 @@ def solve():
 
             try:
                 image_bytes = base64.b64decode(form_value)
-            except Exception:
-                return "Error: image in form was not valid base64", 400
+            except Exception as e:
+                print("Base64 decode failed:", str(e))
+                return "Error: could not decode image", 400
 
         elif request.data:
             print("Image received from raw request.data")
