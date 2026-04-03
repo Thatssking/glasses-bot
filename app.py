@@ -22,6 +22,15 @@ If you CANNOT read it:
 - Reply with ONLY: Cannot read image, please retake
 """
 
+def detect_media_type(image_bytes: bytes) -> str:
+    if image_bytes.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if len(image_bytes) > 12 and image_bytes[4:8] == b"ftyp":
+        return "image/heic"
+    return "image/jpeg"
+
 @app.route("/")
 def home():
     return "Bot is running!"
@@ -42,7 +51,13 @@ def solve():
 
         elif request.form.get("image"):
             print("Image received from request.form")
-            form_value = request.form.get("image")
+            form_value = request.form.get("image", "").strip()
+
+            if form_value.startswith("data:"):
+                try:
+                    form_value = form_value.split(",", 1)[1]
+                except Exception:
+                    return "Error: invalid data URL format", 400
 
             try:
                 image_bytes = base64.b64decode(form_value)
@@ -56,7 +71,11 @@ def solve():
         if not image_bytes:
             return "No image received", 400
 
+        media_type = detect_media_type(image_bytes)
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        print(f"Detected media type: {media_type}")
+        print("Calling Anthropic")
 
         response = client.messages.create(
             model="claude-3-5-sonnet-latest",
@@ -69,7 +88,7 @@ def solve():
                             "type": "image",
                             "source": {
                                 "type": "base64",
-                                "media_type": "image/jpeg",
+                                "media_type": media_type,
                                 "data": image_b64,
                             },
                         },
