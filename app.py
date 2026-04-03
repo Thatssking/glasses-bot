@@ -29,20 +29,6 @@ def detect_media_type(image_bytes: bytes) -> str:
         return "image/png"
     return "image/jpeg"
 
-def decode_base64_loose(data: str) -> bytes:
-    data = data.strip()
-
-    if data.startswith("data:"):
-        data = data.split(",", 1)[1]
-
-    data = data.replace("\n", "").replace("\r", "").replace(" ", "")
-
-    missing_padding = len(data) % 4
-    if missing_padding:
-        data += "=" * (4 - missing_padding)
-
-    return base64.b64decode(data)
-
 @app.route("/")
 def home():
     return "Bot is running!"
@@ -53,30 +39,19 @@ def solve():
         if not ANTHROPIC_API_KEY:
             return "Error: ANTHROPIC_API_KEY is missing", 500
 
-        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
-        image_bytes = None
+        if "image" not in request.files:
+            return "Error: no uploaded file found in field 'image'", 400
 
-        if "image" in request.files:
-            print("Image received from request.files")
-            image_bytes = request.files["image"].read()
-
-        elif request.form.get("image"):
-            print("Image received from request.form")
-            form_value = request.form.get("image", "")
-            image_bytes = decode_base64_loose(form_value)
-
-        elif request.data:
-            print("Image received from raw request.data")
-            image_bytes = request.data
+        uploaded_file = request.files["image"]
+        image_bytes = uploaded_file.read()
 
         if not image_bytes:
-            return "No image received", 400
+            return "Error: uploaded image file is empty", 400
 
         media_type = detect_media_type(image_bytes)
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
 
-        print(f"Detected media type: {media_type}")
-        print("Calling Anthropic")
+        client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
         response = client.messages.create(
             model="claude-sonnet-4-6",
