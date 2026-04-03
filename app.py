@@ -55,12 +55,12 @@ def solve():
         return response.content[0].text
 
     except Exception as e:
-        return "Cannot read image, please retake"
+        return f"Error: {str(e)}", 500
 
 @app.route("/")
 def home():
     return "Bot is running!"
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 8080))
     app.run(host="0.0.0.0", port=port)
