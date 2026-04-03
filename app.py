@@ -29,6 +29,16 @@ def detect_media_type(image_bytes: bytes) -> str:
         return "image/png"
     return "image/jpeg"
 
+def decode_base64_loose(data: str) -> bytes:
+    data = data.strip()
+    if data.startswith("data:"):
+        data = data.split(",", 1)[1]
+    data = data.replace("\n", "").replace("\r", "").replace(" ", "")
+    missing_padding = len(data) % 4
+    if missing_padding:
+        data += "=" * (4 - missing_padding)
+    return base64.b64decode(data)
+
 @app.route("/")
 def home():
     return "Bot is running!"
@@ -39,17 +49,35 @@ def solve():
         if not ANTHROPIC_API_KEY:
             return "Error: ANTHROPIC_API_KEY is missing", 500
 
-        if "image" not in request.files:
-            return "Error: no uploaded file found in field 'image'", 400
+        image_bytes = None
 
-        uploaded_file = request.files["image"]
-        image_bytes = uploaded_file.read()
+        if "image" in request.files:
+            print("Image received from request.files")
+            image_bytes = request.files["image"].read()
+
+        elif request.form.get("image"):
+            print("Image received from request.form")
+            form_value = request.form.get("image")
+
+            try:
+                image_bytes = decode_base64_loose(form_value)
+                print("Decoded request.form as base64")
+            except Exception:
+                print("request.form was not base64, using raw text bytes")
+                image_bytes = form_value.encode("utf-8")
+
+        elif request.data:
+            print("Image received from raw request.data")
+            image_bytes = request.data
 
         if not image_bytes:
-            return "Error: uploaded image file is empty", 400
+            return "Error: no image received", 400
 
         media_type = detect_media_type(image_bytes)
         image_b64 = base64.b64encode(image_bytes).decode("utf-8")
+
+        print(f"Detected media type: {media_type}")
+        print("Calling Anthropic")
 
         client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
 
