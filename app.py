@@ -27,8 +27,6 @@ def detect_media_type(image_bytes: bytes) -> str:
         return "image/jpeg"
     if image_bytes.startswith(b"\x89PNG\r\n\x1a\n"):
         return "image/png"
-    if len(image_bytes) > 12 and image_bytes[4:8] == b"ftyp":
-        return "image/heic"
     return "image/jpeg"
 
 def decode_base64_loose(data: str) -> bytes:
@@ -65,13 +63,7 @@ def solve():
         elif request.form.get("image"):
             print("Image received from request.form")
             form_value = request.form.get("image", "")
-
-            try:
-                image_bytes = decode_base64_loose(form_value)
-            except Exception as e:
-                print("Base64 decode failed:", str(e))
-                print("First 200 chars of form value:", form_value[:200])
-                return "Error: could not decode image", 400
+            image_bytes = decode_base64_loose(form_value)
 
         elif request.data:
             print("Image received from raw request.data")
@@ -87,7 +79,7 @@ def solve():
         print("Calling Anthropic")
 
         response = client.messages.create(
-            model="claude-3-5-sonnet-latest",
+            model="claude-3-5-sonnet-20241022",
             max_tokens=300,
             messages=[
                 {
