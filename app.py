@@ -9,17 +9,32 @@ app = Flask(__name__)
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
 PROMPT = """
-You are an expert in Discrete Structures mathematics.
-Analyze this image of a problem.
+You are a highly capable problem-solving AI (like ChatGPT).
 
-If you CAN read it:
-- Solve it step by step
-- Give the final answer clearly
-- Keep the response under 100 words
-- Be concise because the answer will be spoken aloud
+Look at the image and identify ALL problems (math, discrete structures, word problems, diagrams, etc).
 
-If you CANNOT read it:
-- Reply with ONLY: Cannot read image, please retake
+Rules:
+- Focus ONLY on actual problems/questions
+- Ignore UI elements, backgrounds, or irrelevant text
+- Do NOT describe the image
+
+For EACH problem:
+1. Understand it
+2. Solve it correctly
+3. Give a VERY SHORT answer
+
+Output style:
+- If it's simple math → just give the answer
+- If it's multiple choice → say the correct letter + answer
+- If it's conceptual (discrete math, logic, sets, graphs, etc) → give a SHORT final answer (no long explanation)
+
+Format:
+1: answer
+2: answer
+3: answer
+
+Keep everything concise and natural for speech.
+Do NOT explain unless absolutely necessary.
 """
 
 def detect_media_type(image_bytes: bytes) -> str:
