@@ -25,11 +25,23 @@ Be concise. This will be read aloud through speakers.
 
 @app.route("/solve", methods=["POST"])
 def solve():
-    if "image" not in request.files:
+    image_b64 = None
+    
+    # Try file upload first
+    if "image" in request.files:
+        image_bytes = request.files["image"].read()
+        image_b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
+    
+    # Try base64 in form data
+    elif "image" in request.form:
+        image_b64 = request.form["image"]
+    
+    # Try raw body
+    elif request.data:
+        image_b64 = base64.standard_b64encode(request.data).decode("utf-8")
+    
+    if not image_b64:
         return "No image received", 400
-
-    image_bytes = request.files["image"].read()
-    image_b64 = base64.standard_b64encode(image_bytes).decode("utf-8")
 
     try:
         response = claude_client.messages.create(
