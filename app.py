@@ -9,27 +9,39 @@ app = Flask(__name__)
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
 PROMPT = """
-Solve all problems in the image.
+You are an expert in Discrete Structures and mathematics.
 
-CRITICAL RULES:
-- Do NOT read the problem
+Your job:
+- Look at the image
+- Identify ONLY the numbered questions
+- Solve each question correctly
+
+IMPORTANT RULES:
+- Ignore all background, UI, and handwriting notes
+- Focus ONLY on the printed questions
+- Do NOT read the problem out loud
 - Do NOT say symbols
 - Do NOT explain anything
-- Only give final answers
 
-FORMAT RULE (VERY IMPORTANT):
-- EVERY answer MUST start with its number
-- ALWAYS include the number for EACH answer
-- NEVER skip numbering
+For multiple choice questions:
+- Return ONLY the correct letter (a, b, c, or d)
+
+For numeric problems:
+- Return ONLY the final answer
+
+STRICT FORMAT:
+- Every answer MUST be labeled
+- Each answer MUST be on its own line
 
 Example:
-1: 212
-2: 22792
-3: 13823
+1: a
+2: c
+3: b
+4: d
 
-If there are 5 problems, you MUST output 5 numbered answers.
+If format is wrong, the answer is wrong.
 
-Keep it short for speech.
+Be precise and concise.
 """
 
 def detect_media_type(image_bytes: bytes) -> str:
